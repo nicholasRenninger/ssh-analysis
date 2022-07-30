@@ -1,6 +1,8 @@
 Icon?
 .DS_Store
 
+**my_df_us.csv
+
 ### sublime
 *.sublime-project
 *.sublime-workspace
