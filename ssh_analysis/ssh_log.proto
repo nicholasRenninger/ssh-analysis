@@ -1,0 +1,31 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+
+package ssh_analysis;
+
+message IPLookupData{
+  float lat = 7;
+  float lon = 8;
+  string continent = 9;
+  string country_iso_code = 10;
+  string country_name = 11;
+  repeated string subdivisions = 12;
+  string timezone = 13;
+  string postal_code = 14;
+  string city = 15;
+}
+
+message SSHLog {
+  google.protobuf.Timestamp timestamp = 1;
+  bool validLoginAttempt = 2;
+  bool usernameIsValid = 3;
+  string user = 4;
+  string ipAddress = 5;
+  int32 port = 6;
+  IPLookupData ipLookupData = 7;
+}
+
+message SSHLogs {
+  repeated SSHLog logs = 1;
+}
