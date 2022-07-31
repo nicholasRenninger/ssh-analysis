@@ -9,7 +9,8 @@ from enum import Enum
 import datetime as dt
 import pandas as pd
 import numpy as np
-from google.protobuf.json_format import MessageToDict
+from io import StringIO
+from google.protobuf.json_format import MessageToJson
 
 import iso3166
 from geoip import geolite2
@@ -126,19 +127,31 @@ def parse_logs(
 
 
 def df_from_parsed_logs(ssh_logs: SSHLogs) -> pd.DataFrame:
-    def without(d, key):
-        d.pop(key)
-        return d
 
-    logs = [
-        MessageToDict(log, including_default_value_fields=True) for log in ssh_logs.logs
-    ]
+    json_logs = StringIO()
 
-    logs_with_ip_lookup_data = [
-        log["ipLookupData"] | without(log, "ipLookupData") for log in logs
-    ]
+    # IDK why, but the protobuf msg->json includes a ton of extra newlines that will break
+    # reading the df as newline-delimited JSON
+    for log in ssh_logs.logs:
+        json_logs.write(
+            MessageToJson(log, including_default_value_fields=True).replace("\n", "")
+            + "\n"
+        )
 
-    return pd.DataFrame.from_records(logs_with_ip_lookup_data)
+    # we want to use read_json because it will properly infer the types (especially date times)
+    df = pd.read_json(json_logs.getvalue(), lines=True)
+
+    # the embedded ipLookipData types is a neted dict per record, so to normalize (flatten),
+    # we normalize and then join on the index
+    df_meta = pd.json_normalize(list(df["ipLookupData"]))
+    df = df.drop("ipLookupData", axis=1).join(df_meta)
+
+    # add datetime breakdown for analytic convenience
+    df["date"] = df["timestamp"].dt.date.astype(str)
+    df["week"] = df["timestamp"].dt.isocalendar().week.astype(str)
+    df["hour"] = df["timestamp"].dt.hour.astype(str)
+
+    return df
 
 
 def get_US_fips_data_from_lat_lon(
