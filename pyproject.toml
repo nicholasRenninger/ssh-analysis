@@ -15,8 +15,11 @@ plotly = "^5.9.0"
 pandas = "^1.4.3"
 jupyterlab = ">=3"
 ipywidgets = ">=7.6"
-protobuf = "^4.21.4"
 pydeck = "^0.7.1"
+seaborn = "^0.11.2"
+altair = "^4.2.0"
+streamlit = "^1.11.1"
+protobuf = ">=3.12"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

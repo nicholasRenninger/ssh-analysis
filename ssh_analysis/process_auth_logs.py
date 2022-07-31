@@ -16,6 +16,9 @@ import iso3166
 from geoip import geolite2
 
 
+import altair as alt
+import matplotlib.pyplot as plt
+import seaborn as sns
 import plotly.graph_objs as go
 import plotly.express as px
 import pydeck as pdk
@@ -152,6 +155,115 @@ def df_from_parsed_logs(ssh_logs: SSHLogs) -> pd.DataFrame:
     df["hour"] = df["timestamp"].dt.hour.astype(str)
 
     return df
+
+
+def make_ridge_plot(df: pd.DataFrame):
+
+    sns.set_style("ticks")
+    sns.set_theme(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
+
+    from numpy import float64
+
+    groups = [
+        "date",
+        "hour",
+        "ipAddress",
+        "validLoginAttempt",
+        "countryName",
+        "user",
+        "usernameIsValid",
+    ]
+    df_grouped = df.groupby(groups).size().to_frame("login attempts").reset_index()
+    df_g = (
+        df_grouped.groupby(["date", "hour"])
+        .sum()
+        .reset_index()[["hour", "login attempts"]]
+    )
+    df_g["login attempts"] = df_g["login attempts"].astype(float64)
+    df_g["hour"] = df_g["hour"].astype(int)
+    df_g.sort_values(by=["hour"], ascending=True, inplace=True)
+    df_g["hour"] = df_g["hour"].astype(str)
+
+    # Initialize the FacetGrid object
+    pal = sns.cubehelix_palette(24, rot=-0.25, light=0.7)
+    g = sns.FacetGrid(df_g, row="hour", hue="hour", aspect=15, height=0.5, palette=pal)
+
+    # Draw the densities in a few steps
+    g.map(
+        sns.kdeplot,
+        "login attempts",
+        bw_adjust=0.9,
+        common_norm=True,
+        clip_on=False,
+        fill=True,
+        alpha=1,
+        linewidth=1.5,
+    )
+    g.map(
+        sns.kdeplot,
+        "login attempts",
+        clip_on=False,
+        color="w",
+        lw=2,
+        bw_adjust=0.9,
+        common_norm=True,
+    )
+
+    # passing color=None to refline() uses the hue mapping
+    g.refline(y=-0.00001, linewidth=2, linestyle="-", color=None, clip_on=True)
+
+    # Define and use a simple function to label the plot in axes coordinates
+    def label(x, color, label):
+        ax = plt.gca()
+        ax.text(
+            0,
+            0.2,
+            label,
+            fontweight="bold",
+            color=color,
+            ha="left",
+            va="center",
+            transform=ax.transAxes,
+        )
+
+    g.map(label, "login attempts")
+
+    # Set the subplots to overlap
+    g.figure.subplots_adjust(hspace=-0.35)
+
+    # Remove axes details that don't play well with overlap
+    g.set_titles("")
+    g.set(yticks=[], ylabel="")
+    g.despine(bottom=True, left=True)
+
+    return df_g, g
+
+
+def make_altair_bar_chart(
+    df: pd.DataFrame, categories: str, disable_max_rows_error: bool = False
+):
+
+    # these plots can be enormous and they're raw JSON, so normally altair stops you from doing this to
+    # not have massive jupyter files saved...
+    if disable_max_rows_error:
+        alt.data_transformers.disable_max_rows()
+
+    area = (
+        alt.Chart(df)
+        .mark_bar(cornerRadius=3, width=20, align="left")
+        .encode(
+            x=alt.X("date:T", axis=alt.Axis(labelAngle=40)),
+            y=alt.Y("num_access:Q", title="# ssh login attempts"),
+            color=alt.Color(categories, scale=alt.Scale(scheme="category20")),
+            tooltip=["date:T", categories, "num_access:Q"],
+        )
+        .transform_aggregate(
+            num_access=f"count({categories})", groupby=["date", categories]
+        )
+        .properties(width=1200, height=400)
+    )
+
+    return area
 
 
 def get_US_fips_data_from_lat_lon(
