@@ -1,15 +1,17 @@
 import argparse
+from cmath import log
 import re
 import json
 from requests import get
 from urllib.request import urlopen
+import requests
 from pathlib import Path
-from typing import Dict
+from typing import Dict, TextIO, Tuple
 from enum import Enum
 import datetime as dt
 import pandas as pd
 import numpy as np
-from io import StringIO
+from io import StringIO, TextIOWrapper
 from google.protobuf.json_format import MessageToJson
 
 import iso3166
@@ -40,6 +42,31 @@ MATCH_MAP = {
 class US_FIPS_Source(Enum):
     FCC_API = "fcc_api"
     CSV = "csv"
+
+
+def get_data_paths(
+    use_demo_data: bool = True,
+) -> Tuple[Path, Path]:
+
+    # shouldn't need to touch this
+    data_dir = Path("../data/")
+    log_filename = "auth.log"
+    df_us_csv_filename = "df_us.csv"
+
+    if use_demo_data:
+        log_file_path = data_dir / Path(log_filename)
+        r = requests.get(
+            "https://raw.githubusercontent.com/elastic/examples/master/Machine%20Learning/Security%20Analytics%20Recipes/suspicious_login_activity/data/auth.log"
+        )
+        with open(file=log_file_path, mode="w+") as f:
+            f.write(r.text)
+
+        path_df_us_fips_csv = data_dir / Path(df_us_csv_filename)
+    else:
+        log_file_path = data_dir / Path(f"my_{log_filename}")
+        path_df_us_fips_csv = data_dir / Path(f"my_{df_us_csv_filename}")
+
+    return log_file_path, path_df_us_fips_csv
 
 
 def lookup_ip(ip_address: str) -> IPLookupData:
@@ -113,20 +140,34 @@ def add_log_entry(match, ssh_logs: SSHLogs, match_map: Dict[str, int]) -> SSHLog
 
 
 def parse_logs(
-    logfile: Path, regex_pattern: str = PATTERN, match_map: Dict[str, int] = MATCH_MAP
+    logfile_path: Path = None,
+    logfile: TextIO = None,
+    regex_pattern: str = PATTERN,
+    match_map: Dict[str, int] = MATCH_MAP,
 ) -> SSHLogs:
 
-    ssh_logs = SSHLogs()
+    if not ((logfile_path is None) ^ (logfile is None)):
+        raise ValueError(
+            f"must supply EITHER open logfile ({logfile}) or logfile_path ({logfile_path})"
+        )
 
-    with open(logfile) as f:
+    def parse(f: TextIO) -> SSHLogs:
+        ssh_logs = SSHLogs()
+
         for log_entry in f:
             m = re.match(regex_pattern, log_entry)
             if m is not None:
                 ssh_logs = add_log_entry(
                     match=m, ssh_logs=ssh_logs, match_map=match_map
                 )
+        return ssh_logs
 
-    return ssh_logs
+    if logfile_path:
+        with open(logfile_path) as f:
+            return parse(f)
+
+    if logfile:
+        return parse(logfile)
 
 
 def df_from_parsed_logs(ssh_logs: SSHLogs) -> pd.DataFrame:
