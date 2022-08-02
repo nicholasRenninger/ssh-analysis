@@ -101,7 +101,7 @@ def get_data(logfile: TextIO, log_file_path: Path):
 
 @st.experimental_memo(suppress_st_warning=True)
 def get_data_US_FIPS(
-    data: pd.DataFrame, csv_path: Path, US_fips_data_source: US_FIPS_Source
+    data: pd.DataFrame, csv_path: Path, _US_fips_data_source: US_FIPS_Source
 ):
     progress_bar = st.sidebar.progress(0)
     status_text = st.sidebar.empty()
