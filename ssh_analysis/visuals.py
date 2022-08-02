@@ -2,6 +2,7 @@ import json
 from urllib.request import urlopen
 
 import numpy as np
+from numpy import float64
 import pandas as pd
 
 import iso3166
@@ -17,13 +18,17 @@ def make_altair_bar_chart(
     df: pd.DataFrame, categories: str, disable_max_rows_error: bool = False
 ):
 
+    # have to make date a string so it is serialized as JSON correctly
+    df_plot = df.copy()
+    df_plot["date"] = df_plot["date"].astype(str)
+
     # these plots can be enormous and they're raw JSON, so normally altair stops you from doing this to
     # not have massive jupyter files saved...
     if disable_max_rows_error:
         alt.data_transformers.disable_max_rows()
 
     area = (
-        alt.Chart(df)
+        alt.Chart(df_plot)
         .mark_bar(cornerRadius=3, width=20, align="left")
         .encode(
             x=alt.X("date:T", axis=alt.Axis(labelAngle=40)),
@@ -45,8 +50,6 @@ def make_ridge_plot(df: pd.DataFrame):
     sns.set_style("ticks")
     sns.set_theme(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
 
-    from numpy import float64
-
     groups = [
         "date",
         "hour",
@@ -56,6 +59,7 @@ def make_ridge_plot(df: pd.DataFrame):
         "user",
         "usernameIsValid",
     ]
+    df_plot = df.copy()
     df_grouped = df.groupby(groups).size().to_frame("login attempts").reset_index()
     df_g = (
         df_grouped.groupby(["date", "hour"])
@@ -122,7 +126,12 @@ def make_ridge_plot(df: pd.DataFrame):
     return df_g, g
 
 
-def make_choropleth_plot(df: pd.DataFrame, projection_type: str = "orthographic"):
+def make_choropleth_plot(
+    df: pd.DataFrame,
+    projection_type: str = "orthographic",
+    width: int = 1500,
+    height: int = 800,
+):
     """uses `Plotly` to create a choropleth map of the origin of the nefarious incidents"""
 
     df_failed_logins = df[~df["validLoginAttempt"]]
@@ -172,8 +181,8 @@ def make_choropleth_plot(df: pd.DataFrame, projection_type: str = "orthographic"
         title="<b>Failed ssh access attempts</b>",
         geo=dict(showframe=False, showcoastlines=True, projection_type=projection_type),
         margin={"l": 10, "r": 10, "b": 10, "t": 50, "pad": 1000},
-        width=1500,
-        height=800,
+        width=width,
+        height=height,
     )
 
     figure = go.Figure(dict(data=data, layout=layout))
@@ -181,27 +190,35 @@ def make_choropleth_plot(df: pd.DataFrame, projection_type: str = "orthographic"
     return figure
 
 
-def make_pydeck_chart(df_with_lat_lon: pd.DataFrame):
+PYDECK_LAT_LON_LAYER_KWARGS = {
+    "HexagonLayer": {
+        "elevation_scale": 50,
+        "pickable": True,
+        "elevation_range": [0, 20000],
+        "extruded": True,
+        "coverage": 50,
+    },
+    "ScatterplotLayer": {
+        "get_radius": 50000,  # Radius is given in meters
+        "get_fill_color": [180, 0, 200, 140],  # Set an RGBA value for fill
+        "pickable": True,
+    },
+}
+
+
+def make_pydeck_chart(
+    df_with_lat_lon: pd.DataFrame,
+    viz_type: str = "HexagonLayer",
+    layer_kwargs: dict = PYDECK_LAT_LON_LAYER_KWARGS["HexagonLayer"],
+):
+
     layer = pdk.Layer(
-        "HexagonLayer",  # `type` positional argument is here
+        viz_type,  # `type` positional argument is here
         df_with_lat_lon[["lat", "lon"]].dropna(),
         get_position=["lon", "lat"],
         auto_highlight=True,
-        elevation_scale=50,
-        pickable=True,
-        elevation_range=[0, 10000],
-        extruded=True,
-        coverage=20,
+        **layer_kwargs,
     )
-
-    # layer = pdk.Layer(
-    #     'ScatterplotLayer',     # Change the `type` positional argument here
-    #     df_with_lat_lon,
-    #     get_position=['lon', 'lat'],
-    #     auto_highlight=True,
-    #     get_radius=10000,          # Radius is given in meters
-    #     get_fill_color=[180, 0, 200, 140],  # Set an RGBA value for fill
-    #     pickable=True)
 
     # Set the viewport location
     view_state = pdk.ViewState(

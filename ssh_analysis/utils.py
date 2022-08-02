@@ -31,10 +31,8 @@ def update_progress_bar(
     num_lines: int,
     update_every_x_percent: float = 1.0,
 ):
-
     if (progress_bar is None) or (status_text is None):
         return
-
     percent_complete = int(i / num_lines * 100)
     update_at_these_indices = list(
         np.floor(np.linspace(0, num_lines, int(100 / update_every_x_percent)))

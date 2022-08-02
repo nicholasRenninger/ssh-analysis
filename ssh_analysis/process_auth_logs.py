@@ -150,7 +150,7 @@ def parse_logs(
                     match=m, ssh_logs=ssh_logs, match_map=match_map
                 )
 
-        update_progress_bar(progress_bar, status_text, i, num_lines)
+            update_progress_bar(progress_bar, status_text, i, num_lines)
 
         return ssh_logs
 
@@ -183,9 +183,9 @@ def df_from_parsed_logs(ssh_logs: SSHLogs) -> pd.DataFrame:
     df = df.drop("ipLookupData", axis=1).join(df_meta)
 
     # add datetime breakdown for analytic convenience
-    df["date"] = df["timestamp"].dt.date.astype(str)
-    df["week"] = df["timestamp"].dt.isocalendar().week.astype(str)
-    df["hour"] = df["timestamp"].dt.hour.astype(str)
+    df["date"] = df["timestamp"].dt.date
+    df["week"] = df["timestamp"].dt.isocalendar().week
+    df["hour"] = df["timestamp"].dt.hour
 
     return df
 
