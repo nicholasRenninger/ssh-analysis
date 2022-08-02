@@ -1148,6 +1148,14 @@ python-versions = ">=3.6.8"
 diagrams = ["railroad-diagrams", "jinja2"]
 
 [[package]]
+name = "pyperclip"
+version = "1.8.2"
+description = "A cross-platform clipboard module for Python. (Only handles plain text for now.)"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pyrsistent"
 version = "0.18.1"
 description = "Persistent/Functional/Immutable data structures"
@@ -1187,6 +1195,14 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 
 [package.dependencies]
 six = ">=1.5"
+
+[[package]]
+name = "python-decouple"
+version = "3.6"
+description = "Strict separation of settings from code."
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "python-geoip"
@@ -1442,6 +1458,19 @@ validators = ">=0.2"
 watchdog = {version = "*", markers = "platform_system != \"Darwin\""}
 
 [[package]]
+name = "streamlit-aggrid"
+version = "0.3.1"
+description = "Streamlit component implementation of ag-grid"
+category = "main"
+optional = false
+python-versions = ">=3.7.8,<4.0"
+
+[package.dependencies]
+pandas = ">=1.2"
+python-decouple = ">=3.6,<4.0"
+streamlit = ">=0.87.0"
+
+[[package]]
 name = "tenacity"
 version = "8.0.1"
 description = "Retry code until it succeeds"
@@ -1651,7 +1680,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "be401306f36bc8d902787c5229405c357c694263c2e9f6c91c03c530dacd2e06"
+content-hash = "87c2b80172b5660a8045cb153065fb9b2a622f79746ea19f3a117251c3912428"
 
 [metadata.files]
 altair = [
@@ -2409,6 +2438,9 @@ pyparsing = [
     {file = "pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
     {file = "pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
 ]
+pyperclip = [
+    {file = "pyperclip-1.8.2.tar.gz", hash = "sha256:105254a8b04934f0bc84e9c24eb360a591aaf6535c9def5f29d92af107a9bf57"},
+]
 pyrsistent = [
     {file = "pyrsistent-0.18.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:df46c854f490f81210870e509818b729db4488e1f30f2a1ce1698b2295a878d1"},
     {file = "pyrsistent-0.18.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5d45866ececf4a5fff8742c25722da6d4c9e180daa7b405dc0a2a2790d668c26"},
@@ -2439,6 +2471,10 @@ pytest = [
 python-dateutil = [
     {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
     {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
+]
+python-decouple = [
+    {file = "python-decouple-3.6.tar.gz", hash = "sha256:2838cdf77a5cf127d7e8b339ce14c25bceb3af3e674e039d4901ba16359968c7"},
+    {file = "python_decouple-3.6-py3-none-any.whl", hash = "sha256:6cf502dc963a5c642ea5ead069847df3d916a6420cad5599185de6bab11d8c2e"},
 ]
 python-geoip = [
     {file = "python-geoip-1.2.tar.gz", hash = "sha256:b7b11dab42bffba56943b3199e3441f41cea145244d215844ecb6de3d5fb2df5"},
@@ -2610,6 +2646,10 @@ stack-data = [
 streamlit = [
     {file = "streamlit-1.11.1-py2.py3-none-any.whl", hash = "sha256:f861ae2f752780f0e02ce1b1f505d475126c4ecc214e0eddeb3baf869a74328d"},
     {file = "streamlit-1.11.1.tar.gz", hash = "sha256:0167dfe66904845d91854db60492e460f2ec0777cf341cb185f1059a4701e5c6"},
+]
+streamlit-aggrid = [
+    {file = "streamlit-aggrid-0.3.1.tar.gz", hash = "sha256:4bb8dac77f9fff16128efaa9cc4d69106e27db0ee7502b33a2cf8e1c48b0d47e"},
+    {file = "streamlit_aggrid-0.3.1-py3-none-any.whl", hash = "sha256:884c1b75ec46179f8a0f6a445ab9433b0875833fb16249d9695f02f0b899e7c9"},
 ]
 tenacity = [
     {file = "tenacity-8.0.1-py3-none-any.whl", hash = "sha256:f78f4ea81b0fabc06728c11dc2a8c01277bfc5181b321a4770471902e3eb844a"},
