@@ -1,3 +1,4 @@
+from math import ceil
 import numpy as np
 
 
@@ -29,15 +30,17 @@ def update_progress_bar(
     status_text,
     i: int,
     num_lines: int,
+    job_name: str = "Processing Log File",
     update_every_x_percent: float = 1.0,
 ):
     if (progress_bar is None) or (status_text is None):
         return
-    percent_complete = int(i / num_lines * 100)
+
+    percent_complete = ceil(i / num_lines * 100)
     update_at_these_indices = list(
         np.floor(np.linspace(0, num_lines, int(100 / update_every_x_percent)))
     )
 
     if i in update_at_these_indices:
         progress_bar.progress(percent_complete)
-        status_text.text(f"Processing Log File: {percent_complete:.0f}% Complete")
+        status_text.text(f"{job_name}: {percent_complete:.0f}% Complete")

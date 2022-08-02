@@ -240,11 +240,17 @@ def get_US_fips_data_from_lat_lon(
         row["state_code"] = data["state_code"]
         row["state_name"] = data["state_name"]
 
-        update_progress_bar(progress_bar, status_text, row.index, num_lines=num_rows)
+        update_progress_bar(
+            progress_bar,
+            status_text,
+            row.name,
+            job_name="FCC API Lookups",
+            num_lines=num_rows,
+        )
 
         return row
 
-    df_us = df[df["countryIsoCode"] == "US"]
+    df_us = df[df["countryIsoCode"] == "US"].copy().reset_index()
     df_us = df_us.apply(
         lambda row: get_fips(
             row,
