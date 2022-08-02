@@ -81,7 +81,7 @@ class DS(str, Enum):
     UPLOAD = "Upload My Own"
 
 
-@st.cache(suppress_st_warning=True, allow_output_mutation=True)
+@st.experimental_memo(suppress_st_warning=True)
 def get_data(logfile: TextIO, log_file_path: Path):
 
     progress_bar = st.sidebar.progress(0)
@@ -99,7 +99,7 @@ def get_data(logfile: TextIO, log_file_path: Path):
     return df_from_parsed_logs(ssh_logs)
 
 
-@st.cache(suppress_st_warning=True, allow_output_mutation=True)
+@st.experimental_memo(suppress_st_warning=True)
 def get_data_US_FIPS(
     data: pd.DataFrame, csv_path: Path, US_fips_data_source: US_FIPS_Source
 ):
